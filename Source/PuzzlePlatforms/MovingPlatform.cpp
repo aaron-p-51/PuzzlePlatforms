@@ -8,6 +8,7 @@ AMovingPlatform::AMovingPlatform()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Speed = 5.f;
+
 }
 
 void AMovingPlatform::BeginPlay()
@@ -15,6 +16,18 @@ void AMovingPlatform::BeginPlay()
 	Super::BeginPlay();
 
 	SetMobility(EComponentMobility::Movable);
+
+	if (HasAuthority())
+	{
+		SetReplicates(true);
+		SetReplicateMovement(true);
+	}
+
+	GlobalStartLocation = GetActorLocation();
+
+	// Convert TargetLocation which is local to the Actor to its Global Position
+	GlobalTargetLocation = GetTransform().TransformPosition(TargetLocation);
+	DistanceBetweenLocations_Sqrd = (GlobalTargetLocation - GlobalStartLocation).SizeSquared();
 }
 
 void AMovingPlatform::Tick(float DeltaTime)
@@ -24,9 +37,22 @@ void AMovingPlatform::Tick(float DeltaTime)
 	if (HasAuthority())
 	{
 		FVector CurrentLocation = GetActorLocation();
-		CurrentLocation += FVector(DeltaTime * Speed, 0.0f, 0.0f);
-		SetActorLocation(CurrentLocation);
-	}
+		float DistanceTraveled_Sqrd = (CurrentLocation - GlobalStartLocation).SizeSquared();
 
-	
+		if (DistanceTraveled_Sqrd > DistanceBetweenLocations_Sqrd)
+		{
+			SwapStartAndEndLocation(GlobalStartLocation, GlobalTargetLocation);
+			DistanceBetweenLocations_Sqrd = (GlobalTargetLocation - GlobalStartLocation).SizeSquared();
+		}
+
+		FVector TravelThisFrame = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal() * Speed * DeltaTime;
+		SetActorLocation(TravelThisFrame + CurrentLocation);
+	}
+}
+
+void AMovingPlatform::SwapStartAndEndLocation(FVector& StartLocation, FVector& EndLocation)
+{
+	FVector Temp = StartLocation;
+	StartLocation = EndLocation;
+	EndLocation = Temp;
 }

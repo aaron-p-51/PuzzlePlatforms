@@ -22,14 +22,28 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Speed")
 	float Speed;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", Meta = (MakeEditWidget = "true"))
+	FVector TargetLocation;
+
+private:
+	FVector GlobalTargetLocation;
+	FVector GlobalStartLocation;
+	float DistanceBetweenLocations_Sqrd;
+
+
+
 /*
 * Methods *
 */
 public:
 	AMovingPlatform();
 
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+
+protected:
+	void SwapStartAndEndLocation(FVector& StartLocation, FVector& EndLocation);
 
 };
