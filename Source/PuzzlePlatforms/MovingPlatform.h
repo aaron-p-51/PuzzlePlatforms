@@ -30,6 +30,8 @@ private:
 	FVector GlobalStartLocation;
 	float DistanceBetweenLocations_Sqrd;
 
+	UPROPERTY(EditAnywhere)
+	int ActiveTriggers = 1; // if set to 0 then stop moving
 
 
 /*
@@ -38,12 +40,16 @@ private:
 public:
 	AMovingPlatform();
 
+	void AddActiveTrigger();
+	void RemoveActiveTrigger();
+
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-protected:
+private:
 	void SwapStartAndEndLocation(FVector& StartLocation, FVector& EndLocation);
+	void MovePlatform(float DeltaTime);
 
 };

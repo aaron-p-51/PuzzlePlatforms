@@ -11,6 +11,8 @@ AMovingPlatform::AMovingPlatform()
 
 }
 
+
+
 void AMovingPlatform::BeginPlay()
 {
 	Super::BeginPlay();
@@ -34,25 +36,48 @@ void AMovingPlatform::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (HasAuthority())
+	if (ActiveTriggers > 0)
 	{
-		FVector CurrentLocation = GetActorLocation();
-		float DistanceTraveled_Sqrd = (CurrentLocation - GlobalStartLocation).SizeSquared();
-
-		if (DistanceTraveled_Sqrd > DistanceBetweenLocations_Sqrd)
+		if (HasAuthority())
 		{
-			SwapStartAndEndLocation(GlobalStartLocation, GlobalTargetLocation);
-			DistanceBetweenLocations_Sqrd = (GlobalTargetLocation - GlobalStartLocation).SizeSquared();
+			MovePlatform(DeltaTime);
 		}
-
-		FVector TravelThisFrame = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal() * Speed * DeltaTime;
-		SetActorLocation(TravelThisFrame + CurrentLocation);
 	}
 }
+
+void AMovingPlatform::MovePlatform(float DeltaTime)
+{
+	FVector CurrentLocation = GetActorLocation();
+	float DistanceTraveled_Sqrd = (CurrentLocation - GlobalStartLocation).SizeSquared();
+
+	if (DistanceTraveled_Sqrd > DistanceBetweenLocations_Sqrd)
+	{
+		SwapStartAndEndLocation(GlobalStartLocation, GlobalTargetLocation);
+		DistanceBetweenLocations_Sqrd = (GlobalTargetLocation - GlobalStartLocation).SizeSquared();
+	}
+
+	FVector TravelThisFrame = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal() * Speed * DeltaTime;
+	SetActorLocation(TravelThisFrame + CurrentLocation);
+}
+
 
 void AMovingPlatform::SwapStartAndEndLocation(FVector& StartLocation, FVector& EndLocation)
 {
 	FVector Temp = StartLocation;
 	StartLocation = EndLocation;
 	EndLocation = Temp;
+}
+
+void AMovingPlatform::AddActiveTrigger()
+{
+	ActiveTriggers++;
+}
+
+void AMovingPlatform::RemoveActiveTrigger()
+{
+	if (ActiveTriggers > 0)
+	{
+		ActiveTriggers--;
+	}
+	
 }
